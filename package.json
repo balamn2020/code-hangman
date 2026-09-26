@@ -1,0 +1,17 @@
+{
+  "name": "code-hangman",
+  "version": "2.5.0",
+  "description": "Code Hangman - Developer Syntax Game with SQLite Backend & PWA",
+  "main": "app.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "serve": "node server.js",
+    "app": "node server.js",
+    "py": "python launch_app.py",
+    "terminal": "python code_hangman.py"
+  },
+  "keywords": ["hangman", "pwa", "developer-game", "sqlite", "python", "javascript"],
+  "author": "Code Hangman",
+  "license": "MIT"
+}

@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Code Hangman | The Developer's Syntax Guessing Game</title>
+  <meta name="description" content="A developer-focused terminal and web game guessing missing programming tokens, keywords, and idioms across Python, Java, and C/C++.">
+  
+  <!-- PWA & Mobile Web App Capabilities -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0d14">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Code Hangman">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
+
+  <!-- Modern Monospace & UI Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=VT323&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-cyberpunk">
+  <!-- Subtle CRT scanline overlay -->
+  <div class="crt-overlay" aria-hidden="true"></div>
+
+  <!-- Background Ambience -->
+  <div class="grid-background" aria-hidden="true"></div>
+
+  <!-- Top Navigation & Global Controls -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="terminal-dots" aria-hidden="true">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+      </div>
+      <div class="logo-group">
+        <span class="logo-icon">⚡</span>
+        <h1 class="logo-title">CODE_HANGMAN<span class="version-tag">APP v2.5</span></h1>
+      </div>
+      <span class="cursor-blink">_</span>
+    </div>
+
+    <div class="header-center">
+      <!-- Quick Status Badges -->
+      <div class="stat-badge" id="badge-streak" title="Current Win Streak">
+        <span class="badge-icon">🔥</span>
+        <span class="badge-label">Streak:</span>
+        <span class="badge-value" id="stat-streak-val">0</span>
+      </div>
+      <div class="stat-badge" id="badge-score" title="Total Puzzles Solved">
+        <span class="badge-icon">🏆</span>
+        <span class="badge-label">Wins:</span>
+        <span class="badge-value" id="stat-wins-val">0</span>
+      </div>
+      <div class="stat-badge" id="badge-accuracy" title="Guess Accuracy">
+        <span class="badge-icon">🎯</span>
+        <span class="badge-label">Accuracy:</span>
+        <span class="badge-value" id="stat-acc-val">100%</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Install App Button (PWA) -->
+      <button class="nav-btn install-app-btn" id="btn-install-app" title="Install as Desktop or Mobile App" aria-label="Install App">
+        <span id="install-icon">📲</span>
+        <span class="btn-text" id="install-text">Install App</span>
+      </button>
+
+      <button class="nav-btn" id="btn-sound" title="Toggle Sound FX (Synthesized via Web Audio API)" aria-label="Toggle Sound">
+        <span id="sound-icon">🔊</span>
+        <span class="btn-text">Audio</span>
+      </button>
+      <button class="nav-btn" id="btn-custom-snippet" title="Create Custom Snippet" aria-label="Add Snippet">
+        <span>➕</span>
+        <span class="btn-text">Custom Snippet</span>
+      </button>
+      <button class="nav-btn" id="btn-stats" title="View Statistics" aria-label="Statistics">
+        <span>📊</span>
+        <span class="btn-text">Stats</span>
+      </button>
+      <button class="nav-btn" id="btn-theme" title="Cycle Theme" aria-label="Change Theme">
+        <span>🎨</span>
+        <span class="btn-text" id="theme-name">Cyberpunk</span>
+      </button>
+      <button class="nav-btn" id="btn-settings" title="Application & Gameplay Settings" aria-label="Settings">
+        <span>⚙️</span>
+        <span class="btn-text">Settings</span>
+      </button>
+      <button class="nav-btn auth-nav-btn" id="btn-auth" title="Sign In or Register with SQL Database" aria-label="User Account">
+        <span id="auth-nav-icon">👤</span>
+        <span class="btn-text" id="auth-nav-text">Sign In</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Filter & Mode Bar -->
+  <section class="control-bar" aria-label="Game Filter Options">
+    <div class="filter-group">
+      <span class="filter-label">LANGUAGE:</span>
+      <div class="pill-group" id="lang-selector" role="radiogroup" aria-label="Select Language">
+        <button class="pill-btn active" data-lang="all" role="radio" aria-checked="true">
+          <span class="lang-icon">🎲</span> Any
+        </button>
+        <button class="pill-btn" data-lang="Python" role="radio" aria-checked="false">
+          <span class="lang-icon">🐍</span> Python
+        </button>
+        <button class="pill-btn" data-lang="Java" role="radio" aria-checked="false">
+          <span class="lang-icon">☕</span> Java
+        </button>
+        <button class="pill-btn" data-lang="C" role="radio" aria-checked="false">
+          <span class="lang-icon">⚙️</span> C / C++
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <span class="filter-label">DIFFICULTY:</span>
+      <div class="pill-group" id="diff-selector" role="radiogroup" aria-label="Select Difficulty">
+        <button class="pill-btn active" data-diff="all" role="radio" aria-checked="true">All</button>
+        <button class="pill-btn" data-diff="Beginner" role="radio" aria-checked="false">🟢 Beginner</button>
+        <button class="pill-btn" data-diff="Intermediate" role="radio" aria-checked="false">🟡 Intermediate</button>
+        <button class="pill-btn" data-diff="Advanced" role="radio" aria-checked="false">🔴 Advanced</button>
+      </div>
+    </div>
+
+    <div class="filter-actions">
+      <button class="action-btn-primary" id="btn-new-puzzle" title="Generate New Puzzle (Shortcut: N)">
+        <span class="btn-icon">🔄</span> Next Puzzle
+      </button>
+    </div>
+  </section>
+
+  <!-- Main Game Workspace -->
+  <main class="game-container">
+    <!-- Left Column: Gallows Visualizer, Vital Health, and Console Log -->
+    <aside class="sidebar-panel">
+      <!-- Visual Gallows Card -->
+      <div class="panel-card gallows-card">
+        <div class="panel-card-header">
+          <span class="panel-tag">EXECUTION MONITOR</span>
+          <div class="view-toggle">
+            <button class="view-toggle-btn active" id="toggle-svg-view" title="SVG Vector Gallows">Vector</button>
+            <button class="view-toggle-btn" id="toggle-ascii-view" title="Retro ASCII Gallows">ASCII</button>
+          </div>
+        </div>
+
+        <!-- SVG Vector Gallows Display -->
+        <div class="gallows-display" id="gallows-svg-container">
+          <svg viewBox="0 0 200 210" class="gallows-svg" id="gallows-svg" aria-label="Hangman visual representation">
+            <!-- Scaffold Elements (Static) -->
+            <line x1="20" y1="200" x2="180" y2="200" class="scaffold-base" />
+            <line x1="50" y1="200" x2="50" y2="20" class="scaffold-beam" />
+            <line x1="50" y1="20" x2="135" y2="20" class="scaffold-beam" />
+            <line x1="50" y1="50" x2="80" y2="20" class="scaffold-brace" />
+            <line x1="135" y1="20" x2="135" y2="50" class="scaffold-rope" />
+
+            <!-- Gallows Body Parts (Activated on mistakes) -->
+            <!-- 1 Mistake: Head (and glowing face) -->
+            <g id="part-head" class="body-part hidden">
+              <circle cx="135" cy="68" r="18" class="body-stroke" />
+              <!-- Face Details -->
+              <circle cx="129" cy="65" r="2.5" class="face-eye" />
+              <circle cx="141" cy="65" r="2.5" class="face-eye" />
+              <path d="M 129 74 Q 135 71 141 74" class="face-mouth" />
+            </g>
+
+            <!-- 2 Mistakes: Torso -->
+            <line id="part-torso" x1="135" y1="86" x2="135" y2="135" class="body-part body-stroke hidden" />
+
+            <!-- 3 Mistakes: Left Arm -->
+            <line id="part-arm-left" x1="135" y1="98" x2="105" y2="122" class="body-part body-stroke hidden" />
+
+            <!-- 4 Mistakes: Right Arm -->
+            <line id="part-arm-right" x1="135" y1="98" x2="165" y2="122" class="body-part body-stroke hidden" />
+
+            <!-- 5 Mistakes: Left Leg -->
+            <line id="part-leg-left" x1="135" y1="135" x2="110" y2="175" class="body-part body-stroke hidden" />
+
+            <!-- 6 Mistakes: Right Leg (Game Over) -->
+            <line id="part-leg-right" x1="135" y1="135" x2="160" y2="175" class="body-part body-stroke hidden" />
+          </svg>
+        </div>
+
+        <!-- Alternate ASCII Gallows View -->
+        <div class="gallows-ascii-container hidden" id="gallows-ascii-container">
+          <pre id="gallows-ascii-art" class="ascii-art"></pre>
+        </div>
+
+        <!-- Health Meter & Life Counter -->
+        <div class="vital-status">
+          <div class="vital-label-row">
+            <span class="vital-label">CORE INTEGRITY</span>
+            <span class="vital-count" id="lives-counter-text">6 / 6 LIVES</span>
+          </div>
+          <div class="health-bar-track">
+            <div class="health-bar-fill" id="health-bar-fill" style="width: 100%;"></div>
+          </div>
+          <div class="heart-icons" id="heart-icons" aria-label="Lives remaining">
+            <span class="heart active">♥</span>
+            <span class="heart active">♥</span>
+            <span class="heart active">♥</span>
+            <span class="heart active">♥</span>
+            <span class="heart active">♥</span>
+            <span class="heart active">♥</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Compiler Terminal Output Card -->
+      <div class="panel-card console-card">
+        <div class="panel-card-header">
+          <span class="panel-tag">TERMINAL LOG</span>
+          <span class="pulse-indicator">● LIVE</span>
+        </div>
+        <div class="console-body" id="console-log" role="log" aria-live="polite">
+          <div class="log-line info">> System initialized. Ready for user input.</div>
+          <div class="log-line info">> Syntax tree token hidden. Good luck, Engineer.</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right Column: Interactive Code Editor & Guessing Zone -->
+    <section class="editor-panel">
+      <!-- IDE Window Frame -->
+      <div class="ide-window">
+        <!-- Editor Top Tab Bar -->
+        <div class="ide-tabs">
+          <div class="ide-tab active">
+            <span class="tab-lang-icon" id="file-tab-icon">🐍</span>
+            <span class="tab-filename" id="file-tab-name">snippet.py</span>
+            <span class="tab-close-icon">×</span>
+          </div>
+          <div class="ide-tab-meta">
+            <span class="meta-pill lang-pill" id="badge-snippet-lang">PYTHON</span>
+            <span class="meta-pill diff-pill" id="badge-snippet-diff">BEGINNER</span>
+            <span class="meta-pill len-pill" id="badge-snippet-len">8 CHARS</span>
+          </div>
+        </div>
+
+        <!-- Editor Code Content -->
+        <div class="ide-code-container">
+          <!-- Line Numbers -->
+          <div class="code-line-numbers" id="code-line-numbers" aria-hidden="true">
+            <span>01</span>
+            <span>02</span>
+            <span>03</span>
+            <span>04</span>
+          </div>
+
+          <!-- Code Lines with Syntax Highlighting -->
+          <pre class="code-text" id="code-display" tabindex="0">
+            <!-- Injected via JavaScript -->
+          </pre>
+        </div>
+
+        <!-- Target Token Slot Display -->
+        <div class="token-slot-container">
+          <div class="token-slot-header">
+            <span class="token-slot-label">TARGET TOKEN:</span>
+            <span class="token-status-hint" id="token-status-hint">6 letters remaining</span>
+          </div>
+          <div class="token-letter-cells" id="token-letter-cells" role="group" aria-label="Target token letters">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- Interactive Gameplay Action Bar -->
+        <div class="game-action-bar">
+          <button class="action-btn secondary" id="btn-show-hint" title="Reveal architectural hint without penalty (Shortcut: ?)">
+            <span class="action-btn-icon">💡</span> Clue / Hint
+          </button>
+          <button class="action-btn primary" id="btn-solve-token" title="Attempt to guess entire token immediately (Shortcut: Enter)">
+            <span class="action-btn-icon">⚡</span> Solve Token
+          </button>
+          <button class="action-btn danger" id="btn-forfeit" title="Give up round and view solution (Shortcut: !)">
+            <span class="action-btn-icon">🏳️</span> Surrender
+          </button>
+        </div>
+
+        <!-- Contextual Hint Accordion Drawer -->
+        <div class="hint-drawer hidden" id="hint-drawer">
+          <div class="hint-header">
+            <span class="hint-icon">💡</span>
+            <strong>ARCHITECTURAL CLUE:</strong>
+            <button class="hint-close-btn" id="btn-close-hint">✕</button>
+          </div>
+          <p class="hint-text" id="hint-text">
+            Built-in function that yields index-value pairs during iteration.
+          </p>
+        </div>
+      </div>
+
+      <!-- Virtual Keyboard Panel -->
+      <div class="keyboard-container" aria-label="Virtual on-screen keyboard">
+        <div class="keyboard-toolbar">
+          <span class="keyboard-title">GUESS A LETTER (OR TYPE ON YOUR KEYBOARD)</span>
+          <div class="keyboard-legend">
+            <span class="legend-item"><span class="legend-dot hit"></span> Hit</span>
+            <span class="legend-item"><span class="legend-dot miss"></span> Miss</span>
+          </div>
+        </div>
+
+        <!-- 3 Rows of Keys (QWERTY layout) -->
+        <div class="keyboard-row" id="kb-row-1"></div>
+        <div class="keyboard-row" id="kb-row-2"></div>
+        <div class="keyboard-row" id="kb-row-3"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Solve Whole Token Modal Dialog -->
+  <dialog class="modal-dialog" id="modal-solve-token">
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon">⚡</span>
+          <h3>Solve Whole Token</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-solve-modal">✕</button>
+      </div>
+      <p class="modal-desc">
+        Type the exact token to solve it in one shot!
+        <span class="text-danger">Warning: An incorrect guess costs 1 life.</span>
+      </p>
+
+      <form id="form-solve-token" onsubmit="return false;">
+        <div class="input-group">
+          <input
+            type="text"
+            id="input-solve-token"
+            class="terminal-input"
+            placeholder="e.g. synchronized"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            required
+          />
+          <button type="submit" class="submit-btn" id="btn-submit-solve">Execute Guess</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Round Result Modal (Victory / Defeat) -->
+  <dialog class="modal-dialog" id="modal-result">
+    <div class="modal-content glass-card result-card" id="modal-result-card">
+      <div class="result-banner" id="result-banner">
+        <div class="result-icon-large" id="result-icon">🎉</div>
+        <h2 class="result-title" id="result-title">COMPILATION SUCCEEDED</h2>
+        <span class="result-code-tag" id="result-code-tag">EXIT_CODE 0</span>
+      </div>
+
+      <div class="result-body">
+        <div class="result-token-reveal">
+          <span class="reveal-label">TARGET TOKEN:</span>
+          <span class="reveal-value" id="result-token-value">yield</span>
+        </div>
+
+        <div class="result-explanation-box">
+          <div class="box-title">
+            <span>📘</span> Architectural Explanation &amp; Idiom:
+          </div>
+          <p class="box-content" id="result-explanation-text">
+            Explanation text here...
+          </p>
+        </div>
+
+        <div class="result-code-box">
+          <div class="box-title">
+            <span>💻</span> Restored Code Solution:
+          </div>
+          <pre class="restored-code" id="result-restored-code"></pre>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="modal-btn secondary" id="btn-result-close">Review Board</button>
+        <button class="modal-btn primary" id="btn-result-next">Next Challenge ➜</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Custom Snippet Creator Modal -->
+  <dialog class="modal-dialog modal-large" id="modal-custom-snippet">
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon">🛠️</span>
+          <h3>Custom Snippet Workshop</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-custom-modal">✕</button>
+      </div>
+      <p class="modal-desc">
+        Design your own Code Hangman puzzle. Use <code>{TARGET}</code> in the code template where the missing keyword belongs!
+      </p>
+
+      <form id="form-custom-snippet" class="custom-snippet-form">
+        <div class="form-row dual">
+          <div class="form-group">
+            <label for="custom-lang">Target Language</label>
+            <select id="custom-lang" class="form-select" required>
+              <option value="Python">Python</option>
+              <option value="Java">Java</option>
+              <option value="C">C / C++</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="custom-diff">Difficulty Level</label>
+            <select id="custom-diff" class="form-select" required>
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="custom-token">Target Keyword / Token (The answer)</label>
+          <input type="text" id="custom-token" class="terminal-input" placeholder="e.g. dataclass, malloc, volatile" required />
+        </div>
+
+        <div class="form-group">
+          <label for="custom-template">Code Template (Include <code>{TARGET}</code> placeholder)</label>
+          <textarea id="custom-template" class="terminal-textarea" rows="5" placeholder="from dataclasses import {TARGET}&#10;&#10;@{TARGET}(frozen=True)&#10;class UserConfig:&#10;    port: int = 8080" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="custom-hint">Contextual Clue / Hint</label>
+          <input type="text" id="custom-hint" class="terminal-input" placeholder="Decorator used to generate boilerplate special methods." required />
+        </div>
+
+        <div class="form-group">
+          <label for="custom-explanation">Architectural Explanation</label>
+          <textarea id="custom-explanation" class="terminal-textarea" rows="3" placeholder="`@dataclass` automatically synthesizes __init__, __repr__, and __eq__ based on type annotations." required></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="action-btn secondary" id="btn-export-python">
+            📋 Copy Python Code
+          </button>
+          <button type="submit" class="action-btn primary" id="btn-save-custom">
+            ⚡ Play Snippet Now
+          </button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Statistics Modal -->
+  <dialog class="modal-dialog" id="modal-stats">
+    <div class="modal-content glass-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon">📊</span>
+          <h3>Session Statistics</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-stats-modal">✕</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-number" id="stats-total-played">0</span>
+          <span class="stat-desc">Games Played</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number" id="stats-total-won">0</span>
+          <span class="stat-desc">Games Won</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number" id="stats-win-rate">0%</span>
+          <span class="stat-desc">Win Rate</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number" id="stats-current-streak">0</span>
+          <span class="stat-desc">Current Streak</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number" id="stats-best-streak">0</span>
+          <span class="stat-desc">Best Streak</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-number" id="stats-total-guesses">0</span>
+          <span class="stat-desc">Total Guesses</span>
+        </div>
+      </div>
+
+      <div class="stats-footer">
+        <button class="action-btn danger" id="btn-reset-stats">Reset History</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- PWA Install Guide Modal -->
+  <dialog class="modal-dialog" id="modal-install">
+    <div class="modal-content glass-card install-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon">📲</span>
+          <h3>Install Code Hangman App</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-install-modal">✕</button>
+      </div>
+
+      <div class="install-guide-body">
+        <div class="app-summary-badge">
+          <img src="icons/icon-192.svg" alt="App Icon" class="install-app-icon" width="64" height="64" />
+          <div class="app-summary-text">
+            <strong>Code Hangman</strong>
+            <span>Progressive Web App • Instant Launch • 100% Offline Capable</span>
+          </div>
+        </div>
+
+        <div class="install-instructions" id="install-instructions-content">
+          <!-- Populated dynamically based on device/browser -->
+          <div class="instruction-step">
+            <span class="step-num">1</span>
+            <div class="step-details">
+              <strong>Desktop (Chrome, Edge, Brave):</strong>
+              <p>Click the <strong>"Install App"</strong> button above, or click the install icon in your browser address bar (top right).</p>
+            </div>
+          </div>
+          <div class="instruction-step">
+            <span class="step-num">2</span>
+            <div class="step-details">
+              <strong>Apple iOS (Safari):</strong>
+              <p>Tap the <strong>Share</strong> button <span class="share-icon">⎋</span> at the bottom of Safari, scroll down, and tap <strong>"Add to Home Screen"</strong>.</p>
+            </div>
+          </div>
+          <div class="instruction-step">
+            <span class="step-num">3</span>
+            <div class="step-details">
+              <strong>Android (Chrome):</strong>
+              <p>Tap the three dots menu <strong>⋮</strong> and select <strong>"Install App"</strong> or <strong>"Add to Home Screen"</strong>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="install-action-row">
+          <button class="action-btn primary w-full" id="btn-trigger-install-prompt">
+            ⚡ Install Standalone App Now
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Authentication Modal (Login & Sign Up with SQLite Backend) -->
+  <dialog class="modal-dialog" id="modal-auth">
+    <div class="modal-content glass-card auth-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon">🔐</span>
+          <h3 id="auth-modal-title">Developer Authentication</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-auth-modal">✕</button>
+      </div>
+
+      <!-- Auth Switcher Tabs -->
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab-btn active" id="tab-btn-login" role="tab" aria-selected="true">
+          Sign In
+        </button>
+        <button class="auth-tab-btn" id="tab-btn-signup" role="tab" aria-selected="false">
+          Create Account
+        </button>
+      </div>
+
+      <!-- Live Feedback Alert Banner -->
+      <div class="auth-alert hidden" id="auth-alert" role="alert"></div>
+
+      <!-- 1. Sign In Form -->
+      <form id="form-login" class="auth-form active">
+        <div class="form-group">
+          <label for="login-ident">Username or Email</label>
+          <input
+            type="text"
+            id="login-ident"
+            class="terminal-input"
+            placeholder="e.g. dev_syntax or dev@example.com"
+            autocomplete="username"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input
+            type="password"
+            id="login-password"
+            class="terminal-input"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            required
+          />
+        </div>
+
+        <div class="form-actions-stack">
+          <button type="submit" class="action-btn primary w-full" id="btn-submit-login">
+            ⚡ Sign In to Account
+          </button>
+          <p class="auth-footer-prompt">
+            Don't have an account? <a href="#" id="link-switch-to-signup">Create one now</a>
+          </p>
+        </div>
+      </form>
+
+      <!-- 2. Sign Up Form -->
+      <form id="form-signup" class="auth-form">
+        <div class="form-group">
+          <label>Select Developer Avatar</label>
+          <div class="avatar-picker-grid" id="avatar-picker">
+            <button type="button" class="avatar-option selected" data-avatar="👨‍💻">👨‍💻</button>
+            <button type="button" class="avatar-option" data-avatar="👩‍💻">👩‍💻</button>
+            <button type="button" class="avatar-option" data-avatar="⚡">⚡</button>
+            <button type="button" class="avatar-option" data-avatar="🤖">🤖</button>
+            <button type="button" class="avatar-option" data-avatar="👾">👾</button>
+            <button type="button" class="avatar-option" data-avatar="🕵️">🕵️</button>
+            <button type="button" class="avatar-option" data-avatar="🚀">🚀</button>
+            <button type="button" class="avatar-option" data-avatar="☕">☕</button>
+          </div>
+          <input type="hidden" id="signup-avatar" value="👨‍💻" />
+        </div>
+
+        <div class="form-row dual">
+          <div class="form-group">
+            <label for="signup-username">Username</label>
+            <input
+              type="text"
+              id="signup-username"
+              class="terminal-input"
+              placeholder="e.g. byte_master"
+              minlength="3"
+              maxlength="20"
+              autocomplete="username"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="signup-email">Email Address</label>
+            <input
+              type="email"
+              id="signup-email"
+              class="terminal-input"
+              placeholder="you@domain.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-row dual">
+          <div class="form-group">
+            <label for="signup-password">Password (min 6 chars)</label>
+            <input
+              type="password"
+              id="signup-password"
+              class="terminal-input"
+              placeholder="••••••••"
+              minlength="6"
+              autocomplete="new-password"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="signup-confirm">Confirm Password</label>
+            <input
+              type="password"
+              id="signup-confirm"
+              class="terminal-input"
+              placeholder="••••••••"
+              minlength="6"
+              autocomplete="new-password"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-actions-stack">
+          <button type="submit" class="action-btn primary w-full" id="btn-submit-signup">
+            ✨ Register &amp; Save to SQL
+          </button>
+          <p class="auth-footer-prompt">
+            Already registered? <a href="#" id="link-switch-to-login">Sign in here</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- Application & Gameplay Settings Modal -->
+  <dialog class="modal-dialog modal-large" id="modal-settings">
+    <div class="modal-content glass-card settings-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-icon">⚙️</span>
+          <h3>App &amp; Gameplay Settings</h3>
+        </div>
+        <button class="modal-close-btn" id="btn-close-settings-modal">✕</button>
+      </div>
+
+      <div class="settings-body">
+        <!-- Section 1: User Profile & Database Status -->
+        <div class="settings-section">
+          <div class="settings-section-title">
+            <span>👤</span> Account &amp; SQL Database
+          </div>
+          <div class="account-card" id="settings-account-card">
+            <div class="account-avatar-large" id="settings-account-avatar">👨‍💻</div>
+            <div class="account-meta">
+              <strong id="settings-account-name">Guest Engineer</strong>
+              <span id="settings-account-email">Not authenticated • Playing in offline guest mode</span>
+              <div class="sql-status-badge connected" id="settings-db-badge">
+                <span class="pulse-indicator">●</span> <span id="settings-db-status-text">SQLite Database: Connected (code_hangman.db)</span>
+              </div>
+            </div>
+            <div class="account-actions">
+              <button class="action-btn secondary small" id="btn-settings-auth-action">
+                Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Visuals & Themes -->
+        <div class="settings-section">
+          <div class="settings-section-title">
+            <span>🎨</span> Appearance &amp; Graphics
+          </div>
+          <div class="settings-grid">
+            <div class="setting-item">
+              <div class="setting-text">
+                <strong>Color Theme</strong>
+                <span>Palette for syntax highlighting and UI accents</span>
+              </div>
+              <select id="setting-theme-select" class="form-select small">
+                <option value="theme-cyberpunk">Cyberpunk Neon</option>
+                <option value="theme-matrix">The Matrix Green</option>
+                <option value="theme-monokai">Monokai Pro</option>
+              </select>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-text">
+                <strong>CRT Scanline Effect</strong>
+                <span>Retro CRT terminal flicker &amp; scanlines</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="setting-crt-toggle" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-text">
+                <strong>Background Matrix Grid</strong>
+                <span>Subtle animated perspective grid</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="setting-grid-toggle" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-text">
+                <strong>Execution Monitor Default</strong>
+                <span>Vector SVG or Retro ASCII gallows</span>
+              </div>
+              <select id="setting-gallows-select" class="form-select small">
+                <option value="vector">Vector SVG Graphics</option>
+                <option value="ascii">Retro ASCII Art</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Audio Synthesizer -->
+        <div class="settings-section">
+          <div class="settings-section-title">
+            <span>🔊</span> Web Audio Synthesizer
+          </div>
+          <div class="settings-grid">
+            <div class="setting-item">
+              <div class="setting-text">
+                <strong>Sound FX Enabled</strong>
+                <span>Real-time synthesized harmonic frequencies</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="setting-sound-toggle" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="setting-item full-width">
+              <div class="setting-text">
+                <strong>Master Volume (<span id="setting-volume-text">70%</span>)</strong>
+                <span>Adjust synthesis gain level</span>
+              </div>
+              <div class="slider-group">
+                <input type="range" id="setting-volume-slider" min="0" max="100" value="70" class="volume-slider" />
+                <button type="button" class="action-btn secondary small" id="btn-test-sound">
+                  🔊 Test Beep
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Gameplay Preferences -->
+        <div class="settings-section">
+          <div class="settings-section-title">
+            <span>🕹️</span> Gameplay Preferences
+          </div>
+          <div class="settings-grid">
+            <div class="setting-item">
+              <div class="setting-text">
+                <strong>Default Language Filter</strong>
+                <span>Automatically filter on startup</span>
+              </div>
+              <select id="setting-default-lang" class="form-select small">
+                <option value="all">Any (All Languages)</option>
+                <option value="Python">Python</option>
+                <option value="Java">Java</option>
+                <option value="C">C / C++</option>
+              </select>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-text">
+                <strong>Default Difficulty</strong>
+                <span>Starting difficulty tier</span>
+              </div>
+              <select id="setting-default-diff" class="form-select small">
+                <option value="all">All Difficulties</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-text">
+                <strong>Hardcore Mode (3 Lives)</strong>
+                <span>Penalty doubled for veteran engineers</span>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="setting-hardcore-toggle" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 5: Data & Backup -->
+        <div class="settings-section">
+          <div class="settings-section-title">
+            <span>💾</span> Data &amp; Storage
+          </div>
+          <div class="settings-actions-bar">
+            <button type="button" class="action-btn secondary small" id="btn-export-account-data">
+              📥 Export Account JSON
+            </button>
+            <button type="button" class="action-btn danger small" id="btn-settings-reset-stats">
+              🗑️ Reset Play History
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="modal-btn secondary" id="btn-close-settings-footer">Close</button>
+        <button class="modal-btn primary" id="btn-save-settings-footer">Save Preferences 💾</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Confetti Canvas for Victory -->
+  <canvas id="confetti-canvas" class="confetti-canvas" aria-hidden="true"></canvas>
+
+  <script src="app.js"></script>
+</body>
+</html>

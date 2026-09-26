@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="fav-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0d14"/>
+      <stop offset="100%" stop-color="#111726"/>
+    </linearGradient>
+    <linearGradient id="fav-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f2fe"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#fav-bg)" stroke="#00f2fe" stroke-width="2"/>
+  <circle cx="12" cy="12" r="2.5" fill="#f43f5e"/>
+  <circle cx="18" cy="12" r="2.5" fill="#f59e0b"/>
+  <circle cx="24" cy="12" r="2.5" fill="#10b981"/>
+  <line x1="8" y1="18" x2="56" y2="18" stroke="#6366f1" stroke-width="1" stroke-opacity="0.4"/>
+  <!-- Scaffold -->
+  <path d="M 16 50 L 26 50 M 21 50 L 21 24 L 40 24 L 40 30" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <!-- Lightning bolt / token -->
+  <polygon points="39,29 34,38 41,38 37,50 48,39 42,39" fill="url(#fav-cyan)"/>
+</svg>

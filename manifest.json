@@ -1,0 +1,59 @@
+{
+  "id": "com.codehangman.app",
+  "name": "Code Hangman - The Developer's Syntax Game",
+  "short_name": "Code Hangman",
+  "description": "Deduce missing programming keywords, syntax tokens, and language idioms across Python, Java, and C/C++.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0a0d14",
+  "theme_color": "#00f2fe",
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": ["games", "education", "developer tools"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Play Next Puzzle",
+      "short_name": "Next Puzzle",
+      "description": "Jump straight into a new coding syntax puzzle",
+      "url": "./index.html",
+      "icons": [{ "src": "icons/icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Custom Snippet Workshop",
+      "short_name": "Custom Snippets",
+      "description": "Create and practice your own coding snippets",
+      "url": "./index.html#custom",
+      "icons": [{ "src": "icons/icon-192.svg", "sizes": "192x192" }]
+    }
+  ]
+}
